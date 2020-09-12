@@ -11,13 +11,11 @@ const config = {
     "sgApiKey": "SG.xxx..."
 };
 
-// /html/body/form/div[3]/table[1]/tbody/tr/td/div/div/table/tbody/tr[2]/td/table/tbody/tr/td/table/tbody/tr[3]/td/div/div/div/table[2]/tbody/tr[2]/td/div/div/div[2]/table/tbody/tr[x]/td[y]/div
-// /html/body/form/div[3]/table[1]/tbody/tr/td/div/div/table/tbody/tr[2]/td/table/tbody/tr/td/table/tbody/tr[3]/td/div/div/div/table[2]/tbody/tr[2]/td/div/div/div[2]/table/tbody/tr[9]/td[8]/div[1]
-// /html/body/form/div[3]/table[1]/tbody/tr/td/div/div/table/tbody/tr[2]/td/table/tbody/tr/td/table/tbody/tr[3]/td/div/div/div/table[2]/tbody/tr[2]/td/div/div/div[2]/table/tbody/tr[7]/td[7]/div
-// /html/body/form/div[3]/table[1]/tbody/tr/td/div/div/table/tbody/tr[2]/td/table/tbody/tr/td/table/tbody/tr[3]/td/div/div/div/table[2]/tbody/tr[2]/td/div/div/div[2]/table/tbody/tr[8]/td[7]/div
-///html/body/form/div[3]/table[1]/tbody/tr/td/div/div/table/tbody/tr[2]/td/table/tbody/tr/td/table/tbody/tr[3]/td/div/div/div/table[2]/tbody/tr[2]/td/div/div/div[2]/table/tbody/tr[9]/td[7]/div[1] --> left one
-// /html/body/form/div[3]/table[1]/tbody/tr/td/div/div/table/tbody/tr[2]/td/table/tbody/tr/td/table/tbody/tr[3]/td/div/div/div/table[2]/tbody/tr[2]/td/div/div/div[2]/table/tbody/tr[9]/td[8]/div[2] --> bottom one
-//
+
+function sleep(msg) {
+    console.log(msg)
+    return new Promise(resolve => setTimeout(resolve, 5000));
+}
 
 async function sendEmail() {
     sgMail.setApiKey(config.sgApiKey);
@@ -53,5 +51,22 @@ exports.register = async (req, res) => {
     //brings you to book workout page
     await page.goto('https://hnd-p-ols.spectrumng.net/mcgill/Members/GroupExercise/ClassSchedules.aspx?isKiosk=False&pname=Book+your+workout&pid=GRX,0')
 
+    //wait for navigation doesnt work well..... so just wait for 5000ms seems to do the trick
 
+    //click on list view
+    await sleep("getting list")    //only way i found to wait for the element
+    await page.click('#ctl00_pageContentHolder_lnkGriedView');
+
+    //todo insert data picker here
+
+    await sleep("getting fitness center")
+    await page.click("#dk_container_ctl00_pageContentHolder_ddlCategory > a")
+    await page.click('#dk_container_ctl00_pageContentHolder_ddlCategory > div > ul > li:nth-child(7) > a');
+
+    //search button
+    await sleep("Searching")
+    await page.click('#btnSearch')
+
+
+    await browser.close();
 };
