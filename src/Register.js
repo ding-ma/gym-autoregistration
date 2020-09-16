@@ -53,15 +53,58 @@ exports.register = async (req, res) => {
 
     //wait for navigation doesnt work well..... so just wait for 5000ms seems to do the trick
 
+    //Select Currie Fitness Center
+    await sleep("getting fitness center") 
+    await page.click("#dk_container_ctl00_pageContentHolder_ddlCategory > a")
+    await page.click('#dk_container_ctl00_pageContentHolder_ddlCategory > div > ul > li:nth-child(7) > a');
+
+    //Configure the date you want to Select 
+    var targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() + 2);
+
+    var dd = targetDate.getDate();
+    var mm = targetDate.getMonth() + 1; // 0 is January, so we must add 1
+    var yyyy = targetDate.getFullYear();
+    var indexOfDay = targetDate.getDay() + 1;
+
+
+    //for finding the row
+    var monthStart = new Date();
+    monthStart.setDate(1)
+    var IndexofFirst = monthStart.getDay() + 1;
+
+    var indexWeekDay = targetDate.getDay() + 1;
+    var rowMethodA = indexWeekDay % 7; //remainder
+    var rowMethodB = Math.floor(dd / 7); //integer
+
+    var weekRow = rowMethodB + 1;
+
+    if((rowMethodA + IndexofFirst) > 7 ){
+         weekRow + 1;
+    }
+
+     //For dropdown menu selection of month
+     if (mm.length === 2){
+        mm = mm.substring(1);
+    }
+
+    //Select DatePicker
+    await page.click('#ctl00_pageContentHolder_ctrlFromDate_txtDate')
+    //Month
+    await page.click('#ui-datepicker-div > div > div > select.ui-datepicker-month')
+    await page.click('#ui-datepicker-div > div > div > select.ui-datepicker-month > ul > li:nth-child(${mm}) > a');
+    //Year
+    await page.click('#ui-datepicker-div > div > div > select.ui-datepicker-year')
+    await page.click('#ui-datepicker-div > div > div > select.ui-datepicker-year > ul > li:nth-child(${yyyy}) > a');
+    //Day
+    await page.click('#ui-datepicker-div > table > tbody > tr:nth-child(3) > td:nth-child($indexWeekDay) > a')
+    document.querySelector("#ui-datepicker-div > table > tbody > tr:nth-child($weekRow) > td:nth-child($indexOfDay) > a")
+    
+
+
     //click on list view
     await sleep("getting list")    //only way i found to wait for the element
     await page.click('#ctl00_pageContentHolder_lnkGriedView');
-
-    //todo insert data picker here
-
-    await sleep("getting fitness center")
-    await page.click("#dk_container_ctl00_pageContentHolder_ddlCategory > a")
-    await page.click('#dk_container_ctl00_pageContentHolder_ddlCategory > div > ul > li:nth-child(7) > a');
 
     //search button
     await sleep("Searching")
