@@ -1,14 +1,14 @@
 const puppeteer = require('puppeteer');
 const sgMail = require('@sendgrid/mail');
-
+require('dotenv').config();
 
 const config = {
-    "email": "",
-    "password": "",
+    "email": process.env.EMAIL,
+    "password": process.env.PASWORD,
     "timeSlots": [],
     "wantEmail": true,
     "notifEmail": "",
-    "sgApiKey": "SG.xxx..."
+    "sgApiKey": process.env.SENDG_GRID_API
 };
 
 
