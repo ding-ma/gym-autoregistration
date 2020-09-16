@@ -5,7 +5,15 @@ require('dotenv').config();
 const config = {
     "email": process.env.EMAIL,
     "password": process.env.PASWORD,
-    "timeSlots": [],
+    "timeSlots": {
+        "Monday":[],
+        "Tuesday":[],
+        "Wednesday":[],
+        "Thursday":[],
+        "Friday":[],
+        "Saturday":[],
+        "Sunday":[],
+    },
     "wantEmail": true,
     "notifEmail": "",
     "sgApiKey": process.env.SENDG_GRID_API
@@ -17,8 +25,12 @@ function sleep(msg) {
     return new Promise(resolve => setTimeout(resolve, 5000));
 }
 
+function getTrainingHours(){
+    const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
-function getDate(){
+}
+
+function getRegisteringDate(){
     //Configure the date you want to Select
     const targetDate = new Date();
     targetDate.setDate(targetDate.getDate() + 2);
@@ -86,7 +98,7 @@ exports.register = async (req, res) => {
     await sleep("picking date")
     await page.click("#pnlSelection > table.SmallTableBorder > tbody > tr:nth-child(6) > td:nth-child(2) > table > tbody > tr > td:nth-child(3) > table > tbody > tr > td:nth-child(1) > span > label")
     await page.click("#ctl00_pageContentHolder_ctrlFromDate_trshowCal > img")
-    await page.click(getDate())
+    await page.click(getRegisteringDate())
 
 
     //click on list view
@@ -97,6 +109,7 @@ exports.register = async (req, res) => {
     await sleep("Searching")
     await page.click('#btnSearch')
 
+    //pick the training hours and register
 
     await browser.close();
 };
