@@ -6,13 +6,13 @@ const config = {
     "email": process.env.EMAIL,
     "password": process.env.PASWORD,
     "timeSlots": {
-        "Monday":[],
-        "Tuesday":[],
-        "Wednesday":[],
-        "Thursday":[],
-        "Friday":[],
-        "Saturday":[],
-        "Sunday":[],
+        "Monday": ["6:30", "10:30"],
+        "Tuesday": ["14:30", "12:30"],
+        "Wednesday": ["18:30"],
+        "Thursday": ["8:30", "18:30", "16:30"],
+        "Friday": ["6:30", "8:30", "10:30"],
+        "Saturday": ["9:00", "11:00"],
+        "Sunday": ["11:00", "13:00"],
     },
     "wantEmail": true,
     "notifEmail": "",
@@ -20,17 +20,61 @@ const config = {
 };
 
 
+const weekendDict = {
+    "9:00": 2,
+    "11:00": 3,
+    "13:00": 4
+}
+
+
+const weekdayDict = {
+    "6:30": 2,
+    "8:30": 3,
+    "10:30": 4,
+    "12:30": 5,
+    "14:30": 6,
+    "16:30": 7,
+    "18:30": 8
+}
+
 function sleep(msg) {
     console.log(msg)
     return new Promise(resolve => setTimeout(resolve, 5000));
 }
 
-function getTrainingHours(){
-    const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-
+function getTrainingHours() {
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() + 2);
+    console.log(config.timeSlots[days[targetDate.getDay()]])
+    return config.timeSlots[days[targetDate.getDay()]]
 }
 
-function getRegisteringDate(){
+
+function getEnrollmentButtonPath(time) {
+    if (time === "Saturday" || time === "Sunday") {
+        return "#lstSchedules > table > tbody > tr:nth-child(" + weekendDict[time] + ") > td:nth-child(1) > input";
+    } else {
+        return "#lstSchedules > table > tbody > tr:nth-child(" + weekdayDict[time] + ") > td:nth-child(1) > input";
+    }
+}
+
+
+async function isFull(page, time) {
+    let selector;
+
+    if (time === "Saturday" || time === "Sunday") {
+        selector = "#lstSchedules > table > tbody > tr:nth-child(" + weekendDict[time] + ") > td:nth-child(7)"
+    } else {
+        selector = "#lstSchedules > table > tbody > tr:nth-child(" + weekdayDict[time] + ") > td:nth-child(7)";
+    }
+
+    const element = await page.$(selector);
+    const text = await page.evaluate(element => element.textContent, element);
+    return text.split("/")[0] === text.split("/")[1];
+}
+
+function getRegisteringDate() {
     //Configure the date you want to Select
     const targetDate = new Date();
     targetDate.setDate(targetDate.getDate() + 2);
@@ -47,10 +91,10 @@ function getRegisteringDate(){
 
     let weekRow = Math.floor(dd / 7);     //integer
 
-    if((rowMethodA + IndexofFirst) > 7 ){
-        weekRow +=1;
+    if ((rowMethodA + IndexofFirst) > 7) {
+        weekRow += 1;
     }
-    return "#ui-datepicker-div > table > tbody > tr:nth-child("+weekRow+") > td:nth-child("+indexWeekDay+")";
+    return "#ui-datepicker-div > table > tbody > tr:nth-child(" + weekRow + ") > td:nth-child(" + indexWeekDay + ")";
 }
 
 async function sendEmail() {
@@ -109,7 +153,17 @@ exports.register = async (req, res) => {
     await sleep("Searching")
     await page.click('#btnSearch')
 
+    await sleep("looking for available time")
     //pick the training hours and register
+    const hours = getTrainingHours();
+    for( let i=0; i <hours.length; i++){
+        console.log(hours[i])
+        if(!await isFull(page, hours[i])){
+            await page.click(getEnrollmentButtonPath(hours[i]));
+            await page.click("#btnWaiverAgree");
+            break;
+        }
+    }
 
-    await browser.close();
+    // await browser.close();
 };
