@@ -39,17 +39,15 @@ const weekdayDict = {
 
 function sleep(msg) {
     console.log(msg)
-    return new Promise(resolve => setTimeout(resolve, 5000));
+    return new Promise(resolve => setTimeout(resolve, 4000));
 }
 
-function getTrainingHours() {
+function getDayOfWeek(){
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const targetDate = new Date();
     targetDate.setDate(targetDate.getDate() + 2);
-    console.log(config.timeSlots[days[targetDate.getDay()]])
-    return config.timeSlots[days[targetDate.getDay()]]
+    return days[[targetDate.getDay()]];
 }
-
 
 function getEnrollmentButtonPath(time) {
     if (time === "Saturday" || time === "Sunday") {
@@ -62,8 +60,8 @@ function getEnrollmentButtonPath(time) {
 
 async function isFull(page, time) {
     let selector;
-
-    if (time === "Saturday" || time === "Sunday") {
+    const dayOfWeek = getDayOfWeek();
+    if (dayOfWeek === "Saturday" || dayOfWeek === "Sunday") {
         selector = "#lstSchedules > table > tbody > tr:nth-child(" + weekendDict[time] + ") > td:nth-child(7)"
     } else {
         selector = "#lstSchedules > table > tbody > tr:nth-child(" + weekdayDict[time] + ") > td:nth-child(7)";
@@ -89,7 +87,7 @@ function getRegisteringDate() {
     const indexWeekDay = targetDate.getDay() + 1;
     const rowMethodA = indexWeekDay % 7; //remainder
 
-    let weekRow = Math.floor(dd / 7);     //integer
+    let weekRow = Math.floor(dd / 7) + 1;     //integer
 
     if ((rowMethodA + IndexofFirst) > 7) {
         weekRow += 1;
@@ -113,6 +111,29 @@ async function nextMonth(page){
     }
 }
 
+async function tryRegister(page){
+    await sleep("looking for available time")
+    const hours = config.timeSlots[getDayOfWeek()];
+    for( let i=0; i <hours.length; i++){
+        console.log(hours[i])
+        if(!await isFull(page, hours[i])){
+            await page.click(getEnrollmentButtonPath(hours[i]));
+            await page.click("#btnWaiverAgree");
+            await page.click("#ctl00_pageContentHolder_btnContinueCart")
+
+            if (config.wantEmail){
+                await sendEmail(hours[i]);
+            }
+            return true;
+        }
+    }
+    return false
+}
+
+//todo
+async function tryWaitlist(page) {
+
+}
 
 async function sendEmail(time) {
 
@@ -124,7 +145,7 @@ async function sendEmail(time) {
             name: "Minerva"
         },
         subject: "Successful Gym registration for ",
-        text: "You have been successfully registered for "+ time
+        text: "You have been successfully registered for "+ getDayOfWeek() + " at " + time
     };
     await sgMail.send(msg)
     console.log("Email Sent!");
@@ -176,21 +197,8 @@ exports.register = async (req, res) => {
 
     //pick the training hours and register
     //doesnt work for a waitlist
-    await sleep("looking for available time")
-    const hours = getTrainingHours();
-    for( let i=0; i <hours.length; i++){
-        console.log(hours[i])
-        if(!await isFull(page, hours[i])){
-            await page.click(getEnrollmentButtonPath(hours[i]));
-            await page.click("#btnWaiverAgree");
-            await page.click("#ctl00_pageContentHolder_btnContinueCart")
-
-            if (config.wantEmail){
-                await sendEmail(hours[i]);
-            }
-
-            break;
-        }
+    if(!await tryRegister(page)){
+        await tryWaitlist(page);
     }
 
      await browser.close();
