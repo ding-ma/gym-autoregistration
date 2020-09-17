@@ -53,6 +53,24 @@ function getRegisteringDate(){
     return "#ui-datepicker-div > table > tbody > tr:nth-child("+weekRow+") > td:nth-child("+indexWeekDay+")";
 }
 
+function nextMonth(){
+    const today = new Date();
+    targetDate.setDate(targetDate.getDate());
+
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() + 2);
+
+    const indexOfTodayMonth = today.getMonth();
+    const indexOfTargetMonth = targetDate.getMonth();
+
+    if(indexOfTargetMonth != indexOfTodayMonth){
+        return true;
+    }else {
+        return false;
+    }
+}
+
+
 async function sendEmail() {
     sgMail.setApiKey(config.sgApiKey);
     let msg = {
@@ -98,6 +116,9 @@ exports.register = async (req, res) => {
     await sleep("picking date")
     await page.click("#pnlSelection > table.SmallTableBorder > tbody > tr:nth-child(6) > td:nth-child(2) > table > tbody > tr > td:nth-child(3) > table > tbody > tr > td:nth-child(1) > span > label")
     await page.click("#ctl00_pageContentHolder_ctrlFromDate_trshowCal > img")
+    if(nextMonth){
+        await page.click("#ui-datepicker-div > div > a.ui-datepicker-next.ui-corner-all")
+    }
     await page.click(getRegisteringDate())
 
 
