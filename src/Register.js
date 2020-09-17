@@ -97,7 +97,25 @@ function getRegisteringDate() {
     return "#ui-datepicker-div > table > tbody > tr:nth-child(" + weekRow + ") > td:nth-child(" + indexWeekDay + ")";
 }
 
+
+//changes month if the today +2 is next month
+async function nextMonth(page){
+    const today = new Date();
+
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() + 2);
+
+    const indexOfTodayMonth = today.getMonth();
+    const indexOfTargetMonth = targetDate.getMonth();
+
+    if(indexOfTargetMonth !== indexOfTodayMonth){
+        await page.click("#ui-datepicker-div > div > a.ui-datepicker-next.ui-corner-all")
+    }
+}
+
+
 async function sendEmail(time) {
+
     sgMail.setApiKey(config.sgApiKey);
     let msg = {
         to: config.notifEmail,
@@ -142,6 +160,9 @@ exports.register = async (req, res) => {
     await sleep("picking date")
     await page.click("#pnlSelection > table.SmallTableBorder > tbody > tr:nth-child(6) > td:nth-child(2) > table > tbody > tr > td:nth-child(3) > table > tbody > tr > td:nth-child(1) > span > label")
     await page.click("#ctl00_pageContentHolder_ctrlFromDate_trshowCal > img")
+
+    await nextMonth(page);
+
     await page.click(getRegisteringDate())
 
 
@@ -172,5 +193,5 @@ exports.register = async (req, res) => {
         }
     }
 
-    // await browser.close();
+     await browser.close();
 };
