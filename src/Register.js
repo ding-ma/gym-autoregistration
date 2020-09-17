@@ -15,7 +15,6 @@ const config = {
         "Sunday": ["11:00", "13:00"],
     },
     "wantEmail": true,
-    "notifEmail": "",
     "sgApiKey": process.env.SENDG_GRID_API
 };
 
@@ -139,12 +138,12 @@ async function sendEmail(time) {
 
     sgMail.setApiKey(config.sgApiKey);
     let msg = {
-        to: config.notifEmail,
+        to: config.email,
         from: {
             email: "gym.registration@mcgill.ca ",
-            name: "Minerva"
+            name: "McGill Gym"
         },
-        subject: "Successful Gym registration for ",
+        subject: "Successful Gym Registration!",
         text: "You have been successfully registered for "+ getDayOfWeek() + " at " + time
     };
     await sgMail.send(msg)
