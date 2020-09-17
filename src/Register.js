@@ -97,7 +97,7 @@ function getRegisteringDate() {
     return "#ui-datepicker-div > table > tbody > tr:nth-child(" + weekRow + ") > td:nth-child(" + indexWeekDay + ")";
 }
 
-async function sendEmail() {
+async function sendEmail(time) {
     sgMail.setApiKey(config.sgApiKey);
     let msg = {
         to: config.notifEmail,
@@ -106,7 +106,7 @@ async function sendEmail() {
             name: "Minerva"
         },
         subject: "Successful Gym registration for ",
-        text: "You have been successfully registered for " //todo
+        text: "You have been successfully registered for "+ time
     };
     await sgMail.send(msg)
     console.log("Email Sent!");
@@ -153,14 +153,21 @@ exports.register = async (req, res) => {
     await sleep("Searching")
     await page.click('#btnSearch')
 
-    await sleep("looking for available time")
     //pick the training hours and register
+    //doesnt work for a waitlist
+    await sleep("looking for available time")
     const hours = getTrainingHours();
     for( let i=0; i <hours.length; i++){
         console.log(hours[i])
         if(!await isFull(page, hours[i])){
             await page.click(getEnrollmentButtonPath(hours[i]));
             await page.click("#btnWaiverAgree");
+            await page.click("#ctl00_pageContentHolder_btnContinueCart")
+
+            if (config.wantEmail){
+                await sendEmail(hours[i]);
+            }
+
             break;
         }
     }
